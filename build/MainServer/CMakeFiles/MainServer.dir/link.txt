@@ -1,0 +1,1 @@
+/usr/bin/g++    -rdynamic CMakeFiles/MainServer.dir/MainServer.cpp.o  -o MainServer ../lib/libyolanda.a -lpthread 
