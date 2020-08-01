@@ -1,111 +1,121 @@
 #include "buffer.h"
 #include "common.h"
 
-const char *CRLF = "\r\n";
+struct buffer* buffer::buffer_new() 
+{
+    struct buffer* buf = (struct buffer*)malloc(sizeof(struct buffer));
+    if (!buf)
+        return nullptr;
 
-struct buffer *buffer_new() {
-    struct buffer *buffer1 = (struct buffer*)malloc(sizeof(struct buffer));
-    if (!buffer1)
-        return NULL;
-
-    buffer1->data = (char*)malloc(INIT_BUFFER_SIZE);
-    buffer1->total_size = INIT_BUFFER_SIZE;
-    buffer1->readIndex = 0;
-    buffer1->writeIndex = 0;
-    return buffer1;
+    buf->data = (char*)malloc(INIT_BUFFER_SIZE);
+    buf->total_size = INIT_BUFFER_SIZE;
+    buf->readIndex = 0;
+    buf->writeIndex = 0;
+    return buf;
 }
 
-void buffer_free(struct buffer *buffer1) {
-    free(buffer1->data);
-    free(buffer1);
+void buffer::buffer_free(struct buffer* buf) 
+{
+    free(buf->data);
+    free(buf);
 }
 
-int buffer_writeable_size(struct buffer *buffer) {
-    return buffer->total_size - buffer->writeIndex;
+// 可写长度
+int buffer::buffer_writeable_size() 
+{
+    return total_size - writeIndex;
 }
 
-int buffer_readable_size(struct buffer *buffer) {
-    return buffer->writeIndex - buffer->readIndex;
+// 可读长度
+int buffer::buffer_readable_size()
+{
+    return writeIndex - readIndex;
 }
 
-int buffer_front_spare_size(struct buffer *buffer) {
-    return buffer->readIndex;
+// 已读数据
+int buffer::buffer_front_spare_size() 
+{
+    return readIndex;
 }
 
-void make_room(struct buffer *buffer, int size) {
-    if (buffer_writeable_size(buffer) >= size) {
+// 空间调整
+void buffer::make_room(int size)
+{
+    if (buffer_writeable_size() >= size) 
         return;
-    }
-    //如果front_spare和writeable的大小加起来可以容纳数据，则把可读数据往前面拷贝
-    if (buffer_front_spare_size(buffer) + buffer_writeable_size(buffer) >= size) {
-        int readable = buffer_readable_size(buffer);
+    // 如果front_spare和writeable的大小加起来可以容纳数据，则把可读数据往前面拷贝
+    if (buffer_front_spare_size() + buffer_writeable_size() >= size) 
+    {
+        int readable = buffer_readable_size();
         int i;
-        for (i = 0; i < readable; i++) {
-            memcpy(buffer->data + i, buffer->data + buffer->readIndex + i, 1);
-        }
-        buffer->readIndex = 0;
-        buffer->writeIndex = readable;
-    } else {
+	for (i = 0; i < readable; i++) 
+	    memcpy(data + i, data + readIndex + i, 1);
+        readIndex = 0;
+        writeIndex = readable;
+    } 
+    else 
+    {
         //扩大缓冲区
-        void *tmp = realloc(buffer->data, buffer->total_size + size);
-        if (tmp == NULL) {
+        void* tmp = realloc(data, total_size + size);
+        if (tmp == nullptr)
             return;
-        }
-        buffer->data = (char*)tmp;
-        buffer->total_size += size;
+        data = (char*)tmp;
+        total_size += size;
     }
 }
 
-int buffer_append(struct buffer *buffer, void *data, int size) {
-    if (data != NULL) {
-        make_room(buffer, size);
-        //拷贝数据到可写空间中
-        memcpy(buffer->data + buffer->writeIndex, data, size);
-        buffer->writeIndex += size;
+void buffer::buffer_append(void* data, int size) 
+{
+    if (data) 
+    {
+        make_room(size);
+        memcpy(data + writeIndex, data, size);
+        writeIndex += size;
     }
 }
 
-int buffer_append_char(struct buffer *buffer, char data) {
-    make_room(buffer, 1);
+void buffer::buffer_append_char(char c) 
+{
+    make_room(1);
     //拷贝数据到可写空间中
-    buffer->data[buffer->writeIndex++] = data;
+    data[writeIndex++] = c;
 }
 
-int buffer_append_string(struct buffer *buffer, char *data) {
-    if (data != NULL) {
+void buffer::buffer_append_string(char* data) 
+{
+    if (data) 
+    {
         int size = strlen(data);
-        buffer_append(buffer, data, size);
+        buffer_append(data, size);
     }
 }
 
-
-int buffer_socket_read(struct buffer *buffer, int fd) {
+int buffer::buffer_socket_read(int fd) 
+{
     char additional_buffer[INIT_BUFFER_SIZE];
     struct iovec vec[2];
-    int max_writable = buffer_writeable_size(buffer);
-    vec[0].iov_base = buffer->data + buffer->writeIndex;
+    int max_writable = buffer_writeable_size();
+    vec[0].iov_base = data + writeIndex;
     vec[0].iov_len = max_writable;
     vec[1].iov_base = additional_buffer;
     vec[1].iov_len = sizeof(additional_buffer);
     int result = readv(fd, vec, 2);
-    if (result < 0) {
+    if (result < 0)
         return -1;
-    } else if (result <= max_writable) {
-        buffer->writeIndex += result;
-    } else {
-        buffer->writeIndex = buffer->total_size;
-        buffer_append(buffer, additional_buffer, result - max_writable);
+    else if (result <= max_writable)
+        writeIndex += result;
+    else
+    {
+        writeIndex = total_size;
+        buffer_append(additional_buffer, result - max_writable);
     }
     return result;
 }
 
-char buffer_read_char(struct buffer *buffer) {
-    char c = buffer->data[buffer->readIndex];
-    buffer->readIndex++;
+char buffer::buffer_read_char()
+{
+    char c = data[readIndex];
+    readIndex++;
     return c;
 }
 
-char *buffer_find_CRLF(struct buffer *buffer) {
-    char *crlf = (char*)memmem(buffer->data + buffer->readIndex, buffer_readable_size(buffer), CRLF, 2);
-    return crlf;
-}

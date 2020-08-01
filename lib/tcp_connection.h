@@ -8,6 +8,13 @@
 
 struct tcp_connection 
 {
+    tcp_connection(){};
+    ~tcp_connection()
+    {
+		
+
+    };
+
     EvLoopPtr eventLoop;
     ChanPtr channel;
     std::string name;

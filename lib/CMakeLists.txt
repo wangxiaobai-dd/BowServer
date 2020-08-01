@@ -20,6 +20,3 @@ target_link_libraries(yolanda pthread)
 
 install(TARGETS yolanda DESTINATION lib)
 
-#file(GLOB HEADERS "*.h")
-#install(FILES ${HEADERS} DESTINATION include/)
-
