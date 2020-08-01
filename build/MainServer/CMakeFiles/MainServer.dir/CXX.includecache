@@ -29,8 +29,6 @@ memory
 -
 functional
 -
-inetaddress.h
-../lib/inetaddress.h
 sys/types.h
 -
 sys/socket.h
@@ -91,8 +89,12 @@ vector
 -
 mutex
 -
+iostream
+-
 common.h
 ../lib/common.h
+log.h
+../lib/log.h
 
 ../lib/event_loop.h
 map
@@ -128,7 +130,9 @@ memory
 common.h
 ../lib/common.h
 
-../lib/inetaddress.h
+../lib/log.h
+stdarg.h
+../lib/stdarg.h
 
 ../lib/tcp_connection.h
 event_loop.h

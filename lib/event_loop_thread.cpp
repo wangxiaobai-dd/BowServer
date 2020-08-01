@@ -3,21 +3,19 @@
 #include "event_loop.h"
 #include "log.h"
 
-void event_loop_thread::event_loop_thread_init(EventThreadPtr& eventLoopThread, int i) 
+void event_loop_thread::init(int i) 
 {
-    char buf[20] = {0};
-    sprintf(buf, "Thread-%d\0", i + 1);
-    eventLoopThread->thread_name = buf;
+    thread_name = "Thread-" + std::to_string(i+1);
 }
 
-void event_loop_thread::event_loop_thread_start(EventThreadPtr& eventLoopThread) 
+void event_loop_thread::start() 
 {
-    eventLoopThread->loopThread = std::thread(event_loop_thread_run, eventLoopThread);
+    loopThread = std::thread(event_loop_thread_run, shared_from_this());
     {
-	std::unique_lock lock(eventLoopThread->mutex);
-	eventLoopThread->cond.wait(lock, [&eventLoopThread]{return eventLoopThread->eventLoop != nullptr; });
+	std::unique_lock lock(mutex);
+	cond.wait(lock, [this]{return eventLoop != nullptr; });
     }
-    yolanda_msgx("event loop thread started, %s", eventLoopThread->thread_name.c_str());
+    yolanda_msgx("event loop thread started, %s", thread_name.c_str());
 }
 
 void event_loop_thread::event_loop_thread_run(EventThreadPtr eventLoopThread) 
@@ -30,6 +28,6 @@ void event_loop_thread::event_loop_thread_run(EventThreadPtr eventLoopThread)
     lock.unlock();
 
     //子线程event loop run
-    eventLoopThread->eventLoop->event_loop_run(eventLoopThread->thread_name);
+    eventLoopThread->eventLoop->event_loop_run();
 }
 

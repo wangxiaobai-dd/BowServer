@@ -21,18 +21,13 @@ TcpServerPtr tcp_server::tcp_server_init(const EvLoopPtr& eventLoop, const Accep
 void tcp_server::start()
 {
     // 开启多个线程
-    thread_pool::thread_pool_start(this->threadPool);
+    threadPool->thread_pool_start();
 
-    // acceptor主线程， 同时把tcpServer作为参数传给channel对象
+    // acceptor主线程，同时把tcpServer作为参数传给channel对象
     // 主线程回调参数为tcpServer
     auto channel = channel::channel_new(acceptor->listen_fd, EVENT_READ, handle_connection_established, nullptr, shared_from_this(), SERVER_TYPE);
     // 主循环增加监听
-    event_loop::event_loop_add_channel_event(this->eventLoop, channel->fd, channel);
-}
-
-void make_nonblocking(int fd) 
-{
-    fcntl(fd, F_SETFL, O_NONBLOCK);
+    event_loop::event_loop_add_channel_event(eventLoop, channel->fd, channel);
 }
 
 int handle_connection_established(const VarData& data) 
@@ -48,11 +43,16 @@ int handle_connection_established(const VarData& data)
 
     yolanda_msgx("new connection established, socket == %d", connected_fd);
 
-    // choose event loop from the thread pool
+    // 选择一个线程
     auto eventLoop = tcpServer->threadPool->thread_pool_get_loop();
 
-    // create a new tcp connection
+    // 创建TCP连接
     auto tcpConnection = tcp_connection::tcp_connection_new(connected_fd, eventLoop, tcpServer->connectionCompletedCallBack, tcpServer->connectionClosedCallBack, tcpServer->messageCallBack, tcpServer->writeCompletedCallBack);
 
     return 0;
+}
+
+void make_nonblocking(int fd) 
+{
+    fcntl(fd, F_SETFL, O_NONBLOCK);
 }

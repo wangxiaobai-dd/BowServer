@@ -12,22 +12,22 @@ ThreadPoolPtr thread_pool::thread_pool_new(const EvLoopPtr& mainLoop, int thread
 }
 
 // 启动线程池 main thread发起
-void thread_pool::thread_pool_start(ThreadPoolPtr& threadPool) 
+void thread_pool::thread_pool_start() 
 {
-    assert(!threadPool->started);
-    assertInSameThread(threadPool->mainLoop);
+    assert(!started);
+    assertInSameThread(mainLoop);
 
-    threadPool->started = 1;
+    started = 1;
 
-    if (threadPool->thread_number <= 0)
+    if (thread_number <= 0)
         return;
 
-    for (int i = 0; i < threadPool->thread_number; ++i) 
+    for (int i = 0; i < thread_number; ++i) 
     {
 	auto threadPtr = std::make_shared<event_loop_thread>();	
-	event_loop_thread::event_loop_thread_init(threadPtr, i);
-	event_loop_thread::event_loop_thread_start(threadPtr);
-	threadPool->eventLoopThreadVec.push_back(threadPtr);
+	threadPtr->init(i);
+	threadPtr->start();
+	eventLoopThreadVec.push_back(threadPtr);
     }
 }
 
@@ -44,7 +44,10 @@ EvLoopPtr thread_pool::thread_pool_get_loop()
     for (int i = 0; i < thread_number; ++i)
     {
 	if(selected->get_event_size() > eventLoopThreadVec[i]->eventLoop->get_event_size())
+	{
+	    yolanda_msgx("get one loop, i:%d, size:%d", i, eventLoopThreadVec[i]->eventLoop->get_event_size());
 	    selected = eventLoopThreadVec[i]->eventLoop;
+	}
     }
     return selected;
 }

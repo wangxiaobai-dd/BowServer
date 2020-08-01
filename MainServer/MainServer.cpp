@@ -40,21 +40,19 @@ int onWriteCompleted(const TcpConnPtr& tcpConnection) {
 
 //连接关闭之后的callback
 int onConnectionClosed(const TcpConnPtr& tcpConnection) {
-    printf("connection closed\n");
+    printf("connection closed, name:%s\n", tcpConnection->name.c_str());
     return 0;
 }
 
 int main(int argc, char** argv)
 {
-    //主线程event_loop
+    // 主线程event_loop
     EvLoopPtr eventLoop = event_loop::event_loop_init("main thread");
-
-    //初始化acceptor
+    // 初始化acceptor
     AcceptorPtr acceptor = acceptor::acceptor_init(SERV_PORT);
 
-    TcpServerPtr tcpServer = tcp_server::tcp_server_init(eventLoop, acceptor, onConnectionCompleted, onMessage, onWriteCompleted, onConnectionClosed, 4);
+    TcpServerPtr tcpServer = tcp_server::tcp_server_init(eventLoop, acceptor, onConnectionCompleted, onMessage, onWriteCompleted, onConnectionClosed, 1);
 
     tcpServer->start();
-
-    eventLoop->event_loop_run("main thread");
+    eventLoop->event_loop_run();
 }

@@ -8,7 +8,7 @@ MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/common.h
 MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/event_dispatcher.h
 MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/event_loop.h
 MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/event_loop_thread.h
-MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/inetaddress.h
+MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/log.h
 MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/tcp_connection.h
 MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/tcp_server.h
 MainServer/CMakeFiles/MainServer.dir/MainServer.cpp.o: ../lib/thread_pool.h

@@ -7,9 +7,7 @@
 #include "channel.h"
 #include "utils.h"
 
-/*
- * event_loop 初始化
- */
+// 初始化event_loop
 EvLoopPtr event_loop::event_loop_init(const std::string& _threadName) 
 {
     auto eventLoop = std::make_shared<event_loop>();
@@ -27,41 +25,31 @@ void event_loop::init(const std::string& _threadName)
 
 void event_loop::event_loop_add_channel_event(EvLoopPtr& eventLoop, int fd, const ChanPtr& channel)
 {
-    event_loop::event_loop_do_channel_event(eventLoop, fd, channel, CHANNEL_ADD);
+    // 线程使用队列改为非阻塞，add 不一定是相同线程
+    eventLoop->evDispatchPtr->addToQueue(channel);
+    yolanda_msgx("eventloop add channel thread:%s", eventLoop->threadName.c_str());
 }
 
 void event_loop::event_loop_remove_channel_event(EvLoopPtr& eventLoop, int fd, const ChanPtr& channel) 
 {
-    event_loop::event_loop_do_channel_event(eventLoop, fd, channel, CHANNEL_REMOVE);
+    assertInSameThread(eventLoop);
+    channel->isTerminate = true;
+    yolanda_msgx("eventloop remove channel thread:%s", eventLoop->threadName.c_str());
 }
 
 void event_loop::event_loop_update_channel_event(EvLoopPtr& eventLoop, int fd, const ChanPtr& channel) 
 {
-    event_loop::event_loop_do_channel_event(eventLoop, fd, channel, CHANNEL_UPDATE);
-}
-
-// 处理注册到eventloop的channel对象
-void event_loop::event_loop_do_channel_event(EvLoopPtr& eventLoop, int fd, const ChanPtr& channel, int type) 
-{
-    /* 
-    if (!isInSameThread(eventLoop)) {
-        event_loop_wakeup(eventLoop);
-    } else {
-        event_loop_handle_pending_channel(eventLoop);
-    }
-    */
-
-    // 线程使用队列改为非阻塞，这里不用wakeup
-    eventLoop->evDispatchPtr->addToQueue(channel);
+    assertInSameThread(eventLoop);
+    eventLoop->evDispatchPtr->event_update(channel);
+    yolanda_msgx("eventloop update channel thread:%s", eventLoop->threadName.c_str());
 }
 
 /*
  * 1.参数验证
  * 2.调用dispatcher来进行事件分发,分发完回调事件处理函数
  */
-void event_loop::event_loop_run(const std::string& threadName) 
+void event_loop::event_loop_run() 
 {
-    std::cout << "eventlooprun threadName: " << threadName << " " << this->ownThreadID << " " << std::this_thread::get_id() << std::endl;
     if (this->ownThreadID != std::this_thread::get_id())
         exit(1);
 

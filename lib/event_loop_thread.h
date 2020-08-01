@@ -7,7 +7,7 @@
 #include <memory>
 #include "common.h"
 
-struct event_loop_thread 
+struct event_loop_thread : public std::enable_shared_from_this<event_loop_thread>
 {
     // 子线程循环
     EvLoopPtr eventLoop;
@@ -19,9 +19,10 @@ struct event_loop_thread
 
     std::thread loopThread;
     // 初始化已经分配内存的event_loop_thread
-    static void event_loop_thread_init(EventThreadPtr&, int);
+    void init(int);
     // 由主线程调用，初始化一个子线程，并且让子线程开始运行event_loop
-    static void event_loop_thread_start(EventThreadPtr&);
+    void start();
+
     static void event_loop_thread_run(EventThreadPtr eventLoopThread);
 };
 

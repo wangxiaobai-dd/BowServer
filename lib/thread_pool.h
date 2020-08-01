@@ -15,10 +15,11 @@ struct thread_pool
 
     std::vector<EventThreadPtr> eventLoopThreadVec;
 
+    void thread_pool_start();
+
     EvLoopPtr thread_pool_get_loop();
     
     static ThreadPoolPtr thread_pool_new(const EvLoopPtr& mainLoop, int threadNumber);
-    static void thread_pool_start(ThreadPoolPtr&);
 };
 
 #endif

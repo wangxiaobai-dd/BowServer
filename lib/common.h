@@ -7,7 +7,6 @@
 
 #include <memory>
 #include <functional>
-#include "inetaddress.h"
 
 #include    <sys/types.h>    /* basic system data types */
 #include    <sys/socket.h>    /* basic socket definitions */

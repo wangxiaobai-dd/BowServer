@@ -34,10 +34,10 @@ void event_dispatcher::event_dispatch()
 	// 终止
 	if((*chanIter)->isTerminate)
 	{
+	    yolanda_msgx("chan terminate success");
 	    event_del(*chanIter);
 	    channelMap.erase((*chanIter)->fd);
-	    channelVec.erase(chanIter++);
-	    yolanda_msgx("chan erase success");
+	    chanIter = channelVec.erase(chanIter);
 	}
 	else
 	    ++chanIter;

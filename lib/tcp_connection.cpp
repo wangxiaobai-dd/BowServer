@@ -13,9 +13,7 @@ TcpConnPtr tcp_connection::tcp_connection_new(int connectedFd, const EvLoopPtr& 
     tcpConnection->input_buffer = buffer_new();
     tcpConnection->output_buffer = buffer_new();
 
-    char buf[30];
-    sprintf(buf, "connection-%d\0", connectedFd);
-    tcpConnection->name = buf;
+    tcpConnection->name = "connection-" + std::to_string(connectedFd);
 
     // add event read for the new connection
     auto channel1 = channel::channel_new(connectedFd, EVENT_READ, handle_read, handle_write, tcpConnection, CONN_TYPE);
@@ -34,7 +32,9 @@ TcpConnPtr tcp_connection::tcp_connection_new(int connectedFd, const EvLoopPtr& 
 int handle_connection_closed(const TcpConnPtr& tcpConnection) {
     auto eventLoop = tcpConnection->eventLoop;
     auto channel = tcpConnection->channel;
+
     event_loop::event_loop_remove_channel_event(eventLoop, channel->fd, channel);
+
     if (tcpConnection->connectionClosedCallBack != NULL) {
         tcpConnection->connectionClosedCallBack(tcpConnection);
     }

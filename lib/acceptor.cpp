@@ -7,6 +7,7 @@ AcceptorPtr acceptor::acceptor_init(int port)
     acceptorPtr->listen_port = port;
     acceptorPtr->listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 
+    // 设置非阻塞
     make_nonblocking(acceptorPtr->listen_fd);
 
     struct sockaddr_in server_addr;
@@ -21,7 +22,7 @@ AcceptorPtr acceptor::acceptor_init(int port)
     int on = 1;
     setsockopt(acceptorPtr->listen_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-    int rt1 = bind(acceptorPtr->listen_fd, (struct sockaddr *) &server_addr, sizeof(server_addr));
+    int rt1 = bind(acceptorPtr->listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
     if (rt1 < 0) {
         error(1, errno, "bind failed ");
     }

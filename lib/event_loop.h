@@ -37,7 +37,7 @@ struct event_loop : public std::enable_shared_from_this<event_loop>
     EvDispatchPtr evDispatchPtr;
 
     void init(const std::string& _threadName);
-    void event_loop_run(const std::string& _threadName);
+    void event_loop_run();
     int get_event_size();
     
     static EvLoopPtr event_loop_init(const std::string& _threadName);
@@ -49,7 +49,6 @@ struct event_loop : public std::enable_shared_from_this<event_loop>
     static int event_loop_handle_pending_remove(EvLoopPtr&, int fd, ChanPtr&);
     static int event_loop_handle_pending_update(EvLoopPtr&, int fd, ChanPtr&);
     
-    static void event_loop_do_channel_event(EvLoopPtr& eventLoop, int fd, const ChanPtr& channel, int type);
     // dispather派发完事件之后，调用该方法通知event_loop执行对应事件的相关callback方法
     // res: EVENT_READ | EVENT_READ等
     static int channel_event_activate(EvLoopPtr&, int fd, int res);

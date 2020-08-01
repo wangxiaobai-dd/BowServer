@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.1)
 project(BowServer C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
+set(BOW_CXXFLAGS -Wno-write-strings)
 add_definitions("-g") 
 
 set(CMAKE_CXX_FLAGS ${BOW_CXXFLAGS})
