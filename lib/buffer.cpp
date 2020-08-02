@@ -16,8 +16,10 @@ struct buffer* buffer::buffer_new()
 
 void buffer::buffer_free(struct buffer* buf) 
 {
-    free(buf->data);
-    free(buf);
+    if(buf && buf->data)
+	free(buf->data);
+    if(buf)
+	free(buf);
 }
 
 // 可写长度
@@ -64,12 +66,12 @@ void buffer::make_room(int size)
     }
 }
 
-void buffer::buffer_append(void* data, int size) 
+void buffer::buffer_append(void* _data, int size) 
 {
-    if (data) 
+    if (_data) 
     {
         make_room(size);
-        memcpy(data + writeIndex, data, size);
+        memcpy(data + writeIndex, _data, size);
         writeIndex += size;
     }
 }
@@ -81,15 +83,16 @@ void buffer::buffer_append_char(char c)
     data[writeIndex++] = c;
 }
 
-void buffer::buffer_append_string(char* data) 
+void buffer::buffer_append_string(char* _data) 
 {
-    if (data) 
+    if (_data) 
     {
-        int size = strlen(data);
-        buffer_append(data, size);
+        int size = strlen(_data);
+        buffer_append(_data, size);
     }
 }
 
+// 套接字读
 int buffer::buffer_socket_read(int fd) 
 {
     char additional_buffer[INIT_BUFFER_SIZE];

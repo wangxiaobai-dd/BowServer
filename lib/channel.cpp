@@ -12,25 +12,25 @@ ChanPtr channel::channel_new(int fd, int events, const ChanCallbackFunc& eventRe
     return chan;
 }
 
-bool channel::channel_write_event_is_enabled(const ChanPtr& channel) 
+bool channel::channel_write_event_is_enabled() 
 {
-    return channel->events & EVENT_WRITE;
+    return events & EVENT_WRITE;
 }
 
-void channel::channel_write_event_enable(const ChanPtr& channel) 
+void channel::channel_write_event_enable() 
 {
-    if(channel->dataType != EVLOOP_TYPE)
+    if(dataType != EVLOOP_TYPE)
 	return;
-    auto eventLoop = std::get<EvLoopPtr>(channel->data);
-    channel->events |= EVENT_WRITE;
-    event_loop::event_loop_update_channel_event(eventLoop, channel->fd, channel);
+    auto eventLoop = std::get<EvLoopPtr>(data);
+    events |= EVENT_WRITE;
+    event_loop::event_loop_update_channel_event(eventLoop, fd, shared_from_this());
 }
 
-void channel::channel_write_event_disable(const ChanPtr& channel) 
+void channel::channel_write_event_disable() 
 {
-    if(channel->dataType != EVLOOP_TYPE)
+    if(dataType != EVLOOP_TYPE)
 	return;
-    auto eventLoop = std::get<EvLoopPtr>(channel->data);
-    channel->events = channel->events & ~EVENT_WRITE;
-    event_loop::event_loop_update_channel_event(eventLoop, channel->fd, channel);
+    auto eventLoop = std::get<EvLoopPtr>(data);
+    events = events & ~EVENT_WRITE;
+    event_loop::event_loop_update_channel_event(eventLoop, fd, shared_from_this());
 }

@@ -30,7 +30,7 @@ TcpConnPtr tcp_connection::tcp_connection_new(int connectedFd, const EvLoopPtr& 
 
 
 // 连接关闭
-int handle_connection_closed(const TcpConnPtr& tcpConnection) 
+int tcp_connection::handle_connection_closed(const TcpConnPtr& tcpConnection) 
 {
     auto eventLoop = tcpConnection->eventLoop;
     auto channel = tcpConnection->channel;
@@ -43,7 +43,7 @@ int handle_connection_closed(const TcpConnPtr& tcpConnection)
 }
 
 // 读事件回调
-int handle_read(const VarData& data)
+int tcp_connection::handle_read(const VarData& data)
 {
     auto tcpConnection = std::get<TcpConnPtr>(data);
     struct buffer* input_buffer = tcpConnection->input_buffer;
@@ -61,7 +61,8 @@ int handle_read(const VarData& data)
 
 // 发送缓冲区可以往外写
 // 把channel对应的output_buffer不断往外发送
-int handle_write(const VarData& data) {
+int tcp_connection::handle_write(const VarData& data) 
+{
     auto tcpConnection = std::get<TcpConnPtr>(data);
     auto eventLoop = tcpConnection->eventLoop;
     assertInSameThread(eventLoop);
@@ -76,62 +77,60 @@ int handle_write(const VarData& data) {
         //已读nwrited字节
         output_buffer->readIndex += nwrited;
         //如果数据完全发送出去，就不需要继续了
-        if (output_buffer->buffer_readable_size() == 0) {
-	    channel::channel_write_event_disable(channel);
-        }
+        if (output_buffer->buffer_readable_size() == 0)
+	    channel->channel_write_event_disable();
+        
         //回调writeCompletedCallBack
-        if (tcpConnection->writeCompletedCallBack != NULL) {
+        if (tcpConnection->writeCompletedCallBack)
             tcpConnection->writeCompletedCallBack(tcpConnection);
-        }
     } 
     else 
         yolanda_msgx("handle_write for tcp connection %s", tcpConnection->name.c_str());
 }
 
-//应用层调用入口
-int tcp_connection_send_data(const TcpConnPtr& tcpConnection, void* data, int size) {
-    size_t nwrited = 0;
-    size_t nleft = size;
-    int fault = 0;
-
-    auto channel = tcpConnection->channel;
-    struct buffer *output_buffer = tcpConnection->output_buffer;
-
-    //先往套接字尝试发送数据
-    if (!channel::channel_write_event_is_enabled(channel) && output_buffer->buffer_readable_size() == 0) {
-        nwrited = write(channel->fd, data, size);
-        if (nwrited >= 0) {
-            nleft = nleft - nwrited;
-        } else {
-            nwrited = 0;
-            if (errno != EWOULDBLOCK) {
-                if (errno == EPIPE || errno == ECONNRESET) {
-                    fault = 1;
-                }
-            }
-        }
-    }
-
-    if (!fault && nleft > 0) {
-        // 拷贝到Buffer中，Buffer的数据由框架接管
-        output_buffer->buffer_append(static_cast<char*>(data) + nwrited, nleft);
-        if (!channel::channel_write_event_is_enabled(channel)) {
-	    channel::channel_write_event_enable(channel);
-        }
-    }
-
-    return nwrited;
-}
-
-int tcp_connection_send_buffer(const TcpConnPtr& tcpConnection, struct buffer* buffer) {
+int tcp_connection::tcp_connection_send_buffer(struct buffer* buffer) 
+{
     int size = buffer->buffer_readable_size();
-    int result = tcp_connection_send_data(tcpConnection, buffer->data + buffer->readIndex, size);
+    int result = tcp_connection_send_data(buffer->data + buffer->readIndex, size);
     buffer->readIndex += size;
     return result;
 }
 
-void tcp_connection_shutdown(const TcpConnPtr& tcpConnection) {
-    if (shutdown(tcpConnection->channel->fd, SHUT_WR) < 0) {
-        yolanda_msgx("tcp_connection_shutdown failed, socket == %d", tcpConnection->channel->fd);
+int tcp_connection::tcp_connection_send_data(void* data, int size) 
+{
+    size_t nwrited = 0;
+    size_t nleft = size;
+    int fault = 0;
+
+    // 先往套接字尝试发送数据
+    if (!channel->channel_write_event_is_enabled() && output_buffer->buffer_readable_size() == 0)
+    {
+	nwrited = write(channel->fd, data, size);
+	if (nwrited >= 0)
+	    nleft = nleft - nwrited;
+	else 
+	{
+	    nwrited = 0;
+	    if (errno != EWOULDBLOCK) 
+	    {
+		if (errno == EPIPE || errno == ECONNRESET) 
+		    fault = 1;
+	    }
+	    // EAGIN EWOULDBLOCK
+	}
     }
+    if (!fault && nleft > 0) 
+    {
+	// 拷贝到Buffer中，Buffer的数据由框架接管
+	output_buffer->buffer_append(static_cast<char*>(data) + nwrited, nleft);
+	if (!channel->channel_write_event_is_enabled())
+	    channel->channel_write_event_enable();
+    }
+    return nwrited;
+}
+
+void tcp_connection::tcp_connection_shutdown() 
+{
+    if (shutdown(channel->fd, SHUT_WR) < 0)
+	yolanda_msgx("tcp_connection_shutdown failed, socket == %d", channel->fd);
 }

@@ -6,6 +6,7 @@ project(BowServer C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 set(BOW_CXXFLAGS "-Wno-write-strings -Wno-pointer-arith")
+#-fsanitize=address
 add_definitions("-g") 
 
 set(CMAKE_CXX_FLAGS ${BOW_CXXFLAGS})

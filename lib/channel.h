@@ -19,7 +19,7 @@
 typedef std::variant<EvLoopPtr, TcpServerPtr, TcpConnPtr> VarData;
 typedef std::function<int(const VarData& )> ChanCallbackFunc;
 
-struct channel 
+struct channel : public std::enable_shared_from_this<channel>
 {
     int fd = -1;
     int events = -1;   // 表示event类型
@@ -30,10 +30,11 @@ struct channel
     ChanCallbackFunc eventWriteCallback;
     VarData data; // callback data, 可能是event_loop，也可能是tcp_server或者tcp_connection
 
+    bool channel_write_event_is_enabled();
+    void channel_write_event_enable();
+    void channel_write_event_disable();
+
     static ChanPtr channel_new(int fd, int events, const ChanCallbackFunc& eventReadCallback, const ChanCallbackFunc& eventWriteCallback, const VarData& data, const DataType type);
-    static bool channel_write_event_is_enabled(const ChanPtr& channel);
-    static void channel_write_event_enable(const ChanPtr& channel);
-    static void channel_write_event_disable(const ChanPtr& channel);
 };
 
 #endif

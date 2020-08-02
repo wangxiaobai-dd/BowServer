@@ -18,7 +18,7 @@ int onConnectionCompleted(const TcpConnPtr& tcpConnection) {
     return 0;
 }
 
-//数据读到buffer之后的callback
+// 数据读到buffer之后的callback
 int onMessage(struct buffer* input, const TcpConnPtr& tcpConnection) {
     printf("get message from tcp connection %s\n", tcpConnection->name.c_str());
     printf("%s", input->data);
@@ -28,7 +28,7 @@ int onMessage(struct buffer* input, const TcpConnPtr& tcpConnection) {
     for (int i = 0; i < size; i++) 
 	output->buffer_append_char(rot13_char(input->buffer_read_char()));
 
-    tcp_connection_send_buffer(tcpConnection, output);
+    tcpConnection->tcp_connection_send_buffer(output);
     return 0;
 }
 

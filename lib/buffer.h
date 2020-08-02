@@ -16,7 +16,7 @@ struct buffer
     int buffer_front_spare_size();
     void make_room(int size);
     
-    void buffer_append(void* data, int size);
+    void buffer_append(void* _data, int size);
     void buffer_append_char(char c);
     void buffer_append_string(char* data);
 
