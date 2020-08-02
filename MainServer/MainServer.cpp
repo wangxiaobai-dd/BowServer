@@ -29,6 +29,7 @@ int onMessage(struct buffer* input, const TcpConnPtr& tcpConnection) {
 	output->buffer_append_char(rot13_char(input->buffer_read_char()));
 
     tcpConnection->tcp_connection_send_buffer(output);
+    buffer::buffer_free(output);
     return 0;
 }
 
