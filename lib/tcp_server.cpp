@@ -5,8 +5,10 @@
 #include "utils.h"
 #include "log.h"
 
+TcpServerPtr tcp_server::_instance = nullptr;
+
 TcpServerPtr tcp_server::tcp_server_init(const EvLoopPtr& eventLoop, const AcceptorPtr& acceptor, const CallbackFunc& connectionCompletedCallBack, const MsgCallbackFunc& messageCallBack, const CallbackFunc& writeCompletedCallBack, const CallbackFunc& connectionClosedCallBack, int threadNum) {
-    auto tcpServer = std::make_shared<tcp_server>();
+    auto tcpServer = tcp_server::instance();
     tcpServer->eventLoop = eventLoop;
     tcpServer->acceptor = acceptor;
     tcpServer->connectionCompletedCallBack = connectionCompletedCallBack;
@@ -15,6 +17,9 @@ TcpServerPtr tcp_server::tcp_server_init(const EvLoopPtr& eventLoop, const Accep
     tcpServer->connectionClosedCallBack = connectionClosedCallBack;
     tcpServer->threadNum = threadNum;
     tcpServer->threadPool = thread_pool::thread_pool_new(eventLoop, threadNum);
+    std::signal(SIGINT, tcp_server::sigint_handler);
+    std::signal(SIGPIPE, SIG_IGN); // 忽略信号 对方sock关闭
+    std::signal(SIGSEGV, tcp_server::sigsegv_handler);
     return tcpServer;
 }
 
@@ -30,7 +35,7 @@ void tcp_server::start()
     event_loop::event_loop_add_channel_event(eventLoop, channel->fd, channel);
 }
 
-int handle_connection_established(const VarData& data) 
+int tcp_server::handle_connection_established(const VarData& data) 
 {
     auto tcpServer = std::get<TcpServerPtr>(data); 
     auto acceptor = tcpServer->acceptor;
