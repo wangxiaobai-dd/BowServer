@@ -4,14 +4,14 @@
 #include <sys/epoll.h>
 #include "event_dispatcher.h"
 #include "event_loop.h"
-#include "log.h"
+// #include "log.h"
 
 void event_dispatcher::init(const EvLoopPtr& _evLoop)
 {
     epfd = epoll_create1(0);
     if(epfd == -1)
     {
-	error(1, errno, "epoll create failed");
+	spdlog::error("epoll create failed");
 	return;
     }
     retEventVec.resize(LISTEN_SIZE);
@@ -20,7 +20,7 @@ void event_dispatcher::init(const EvLoopPtr& _evLoop)
 void event_dispatcher::addToQueue(const ChanPtr& channel)
 {
     this->addChan(channel);
-    yolanda_msgx("chan push success");
+    spdlog::info("chan push success");
 }
 
 void event_dispatcher::event_dispatch()
@@ -34,7 +34,7 @@ void event_dispatcher::event_dispatch()
 	// 终止
 	if((*chanIter)->isTerminate)
 	{
-	    yolanda_msgx("chan terminate success");
+	    spdlog::info("chan terminate success");
 	    event_del(*chanIter);
 	    channelMap.erase((*chanIter)->fd);
 	    chanIter = channelVec.erase(chanIter);
@@ -48,7 +48,7 @@ void event_dispatcher::event_dispatch()
     {
         if (retEventVec[i].events & (EPOLLERR | EPOLLHUP))
 	{
-            fprintf(stderr, "epoll error\n");
+	    spdlog::error("epoll error");
 	    channelMap[retEventVec[i].data.fd]->isTerminate = 1;
             close(retEventVec[i].data.fd);
             continue;
@@ -60,13 +60,13 @@ void event_dispatcher::event_dispatch()
 
         if (retEventVec[i].events & EPOLLIN) 
 	{
-	    yolanda_msgx("event dispatcher read, %d", fd);
+	    spdlog::info("event dispatcher read, {}", fd);
 	    channel->eventReadCallback(channel->data);
         }
 
         if (retEventVec[i].events & EPOLLOUT) 
 	{
-	    yolanda_msgx("event dispatcher write, %d", fd);
+	    spdlog::info("event dispatcher write, {}", fd);
 	    channel->eventWriteCallback(channel->data);
         }
     }
@@ -88,7 +88,7 @@ void event_dispatcher::event_add(const ChanPtr& channel)
     event.data.fd = channel->fd;
     event.events = events;
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, channel->fd, &event) == -1) 
-	error(1, errno, "epoll_ctl add fd failed");
+	spdlog::error("epoll_ctl add fd failed, errno:{}", errno);
     channelMap[channel->fd] = channel;
     channelVec.push_back(channel);
     channelSize = channelVec.size();
@@ -111,7 +111,7 @@ void event_dispatcher::event_del(const ChanPtr& channel)
     event.data.fd = channel->fd;
     event.events = events;
     if (epoll_ctl(epfd, EPOLL_CTL_DEL, channel->fd, &event) == -1)
-        error(1, errno, "epoll_ctl delete fd failed");
+	spdlog::error("epoll_ctl delete fd failed, errno:{}", errno);
 }
 
 void event_dispatcher::event_update(const ChanPtr& channel)
@@ -129,6 +129,6 @@ void event_dispatcher::event_update(const ChanPtr& channel)
     event.data.fd = channel->fd;
     event.events = events;
     if (epoll_ctl(epfd, EPOLL_CTL_MOD, channel->fd, &event) == -1) 
-        error(1, errno, "epoll_ctl modify fd failed");
+	spdlog::error("epoll_ctl mod fd failed, errno:{}", errno);
 }
 

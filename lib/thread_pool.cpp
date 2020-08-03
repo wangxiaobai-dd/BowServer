@@ -45,7 +45,7 @@ EvLoopPtr thread_pool::thread_pool_get_loop()
     {
 	if(selected->get_event_size() > eventLoopThreadVec[i]->eventLoop->get_event_size())
 	{
-	    yolanda_msgx("get one loop, i:%d, size:%d", i, eventLoopThreadVec[i]->eventLoop->get_event_size());
+	    spdlog::info("get one loop, i:{}, size:{}", i, eventLoopThreadVec[i]->eventLoop->get_event_size());
 	    selected = eventLoopThreadVec[i]->eventLoop;
 	}
     }

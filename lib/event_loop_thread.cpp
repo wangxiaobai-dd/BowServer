@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "event_loop_thread.h"
 #include "event_loop.h"
-#include "log.h"
+// #include "log.h"
 
 void event_loop_thread::init(int i) 
 {
@@ -15,7 +15,8 @@ void event_loop_thread::start()
 	std::unique_lock lock(mutex);
 	cond.wait(lock, [this]{return eventLoop != nullptr; });
     }
-    yolanda_msgx("event loop thread started, %s", thread_name.c_str());
+    
+    spdlog::info("event loop thread started, {}", thread_name);
 }
 
 void event_loop_thread::event_loop_thread_run(EventThreadPtr eventLoopThread) 
@@ -23,7 +24,7 @@ void event_loop_thread::event_loop_thread_run(EventThreadPtr eventLoopThread)
     std::unique_lock<std::mutex> lock(eventLoopThread->mutex);
     // 初始化event loop，之后通知主线程
     eventLoopThread->eventLoop = event_loop::event_loop_init(eventLoopThread->thread_name);
-    yolanda_msgx("event loop thread init and signal, %s", eventLoopThread->thread_name.c_str());
+    spdlog::info("event loop thread init and signal, {}", eventLoopThread->thread_name);
     eventLoopThread->cond.notify_one();
     lock.unlock();
 

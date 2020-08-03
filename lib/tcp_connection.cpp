@@ -1,6 +1,6 @@
 #include "tcp_connection.h"
 #include "utils.h"
-#include "log.h"
+// #include "log.h"
 
 // 建立新连接
 TcpConnPtr tcp_connection::tcp_connection_new(int connectedFd, const EvLoopPtr& eventLoop, const CallbackFunc& connectionCompletedCallBack, const CallbackFunc& connectionClosedCallBack, const MsgCallbackFunc& messageCallBack, const CallbackFunc& writeCompletedCallBack)
@@ -85,7 +85,7 @@ int tcp_connection::handle_write(const VarData& data)
             tcpConnection->writeCompletedCallBack(tcpConnection);
     } 
     else 
-        yolanda_msgx("handle_write for tcp connection %s", tcpConnection->name.c_str());
+        spdlog::info("handle_write for tcp connection {}", tcpConnection->name);
 }
 
 int tcp_connection::tcp_connection_send_buffer(struct buffer* buffer) 
@@ -132,5 +132,5 @@ int tcp_connection::tcp_connection_send_data(void* data, int size)
 void tcp_connection::tcp_connection_shutdown() 
 {
     if (shutdown(channel->fd, SHUT_WR) < 0)
-	yolanda_msgx("tcp_connection_shutdown failed, socket == %d", channel->fd);
+	spdlog::info("tcp_connection_shutdown failed, socket == {}", channel->fd);
 }

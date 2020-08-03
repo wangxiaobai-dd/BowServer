@@ -1,5 +1,5 @@
 set(yolanda_lib
-	log.cpp
+	#log.cpp
 	read.cpp
 	tcp_server.cpp
 	tcp_client.cpp
@@ -16,7 +16,8 @@ set(yolanda_lib
 
 
 add_library(yolanda STATIC ${yolanda_lib})
-target_link_libraries(yolanda pthread)
+target_link_libraries(yolanda PRIVATE pthread)
+target_link_libraries(yolanda PRIVATE spdlog::spdlog)
 
 install(TARGETS yolanda DESTINATION lib)
 

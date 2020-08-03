@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include "common.h"
-#include "log.h"
 /*
  * 事件队列
  */
@@ -36,7 +35,7 @@ struct channel_queue
 	lock.lock();
 	while(!queue.empty())
 	{
-	    yolanda_msgx("chan pop success");
+	    spdlog::info("chan pop success");
 	    to_check_queue.push(queue.front());
 	    queue.pop();
 	}

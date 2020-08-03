@@ -3,7 +3,7 @@
 #include "tcp_server.h"
 #include "thread_pool.h"
 #include "utils.h"
-#include "log.h"
+// #include "log.h"
 
 TcpServerPtr tcp_server::_instance = nullptr;
 
@@ -46,7 +46,7 @@ int tcp_server::handle_connection_established(const VarData& data)
     int connected_fd = accept(listenfd, (struct sockaddr *) &client_addr, &client_len);
     make_nonblocking(connected_fd);
 
-    yolanda_msgx("new connection established, socket == %d", connected_fd);
+    spdlog::info("new connection established, socket == {}", connected_fd);
 
     // 选择一个线程
     auto eventLoop = tcpServer->threadPool->thread_pool_get_loop();

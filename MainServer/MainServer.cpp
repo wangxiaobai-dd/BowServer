@@ -14,14 +14,14 @@ char rot13_char(char c) {
 
 //连接建立之后的callback
 int onConnectionCompleted(const TcpConnPtr& tcpConnection) {
-    printf("connection completed\n");
+    spdlog::info("connection completed");
     return 0;
 }
 
 // 数据读到buffer之后的callback
 int onMessage(struct buffer* input, const TcpConnPtr& tcpConnection) {
-    printf("get message from tcp connection %s\n", tcpConnection->name.c_str());
-    printf("%s", input->data);
+    spdlog::info("get message get message from tcp connection:{}", tcpConnection->name);
+    spdlog::info("data:{}", input->data + input->readIndex);
 
     struct buffer* output = buffer::buffer_new();
     int size = input->buffer_readable_size();
@@ -35,13 +35,13 @@ int onMessage(struct buffer* input, const TcpConnPtr& tcpConnection) {
 
 //数据通过buffer写完之后的callback
 int onWriteCompleted(const TcpConnPtr& tcpConnection) {
-    printf("write completed\n");
+    spdlog::info("write completed");
     return 0;
 }
 
 //连接关闭之后的callback
 int onConnectionClosed(const TcpConnPtr& tcpConnection) {
-    printf("connection closed, name:%s\n", tcpConnection->name.c_str());
+    spdlog::info("connection cloesd, name:{}", tcpConnection->name);
     return 0;
 }
 

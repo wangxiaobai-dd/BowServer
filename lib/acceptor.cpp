@@ -24,12 +24,12 @@ AcceptorPtr acceptor::acceptor_init(int port)
 
     int rt1 = bind(acceptorPtr->listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
     if (rt1 < 0) {
-        error(1, errno, "bind failed ");
+	spdlog::error("bind failed");
     }
 
     int rt2 = listen(acceptorPtr->listen_fd, LISTENQ);
     if (rt2 < 0) {
-        error(1, errno, "listen failed ");
+	spdlog::error("listen failed");
     }
     
     return acceptorPtr;

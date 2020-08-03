@@ -2,7 +2,6 @@
 #include <assert.h>
 #include "event_loop.h"
 #include "common.h"
-#include "log.h"
 #include "event_dispatcher.h"
 #include "channel.h"
 #include "utils.h"
@@ -27,21 +26,21 @@ void event_loop::event_loop_add_channel_event(EvLoopPtr& eventLoop, int fd, cons
 {
     // 线程使用队列改为非阻塞，add 不一定是相同线程
     eventLoop->evDispatchPtr->addToQueue(channel);
-    yolanda_msgx("eventloop add channel thread:%s", eventLoop->threadName.c_str());
+    spdlog::info("eventloop add channel thread:{}", eventLoop->threadName);
 }
 
 void event_loop::event_loop_remove_channel_event(EvLoopPtr& eventLoop, int fd, const ChanPtr& channel) 
 {
     assertInSameThread(eventLoop);
     channel->isTerminate = true;
-    yolanda_msgx("eventloop remove channel thread:%s", eventLoop->threadName.c_str());
+    spdlog::info("eventloop remove channel thread:{}", eventLoop->threadName);
 }
 
 void event_loop::event_loop_update_channel_event(EvLoopPtr& eventLoop, int fd, const ChanPtr& channel) 
 {
     assertInSameThread(eventLoop);
     eventLoop->evDispatchPtr->event_update(channel);
-    yolanda_msgx("eventloop update channel thread:%s", eventLoop->threadName.c_str());
+    spdlog::info("eventloop update channel thread:{}", eventLoop->threadName);
 }
 
 /*
@@ -53,11 +52,11 @@ void event_loop::event_loop_run()
     if (this->ownThreadID != std::this_thread::get_id())
         exit(1);
 
-    yolanda_msgx("event loop run, %s", this->threadName.c_str());
+    spdlog::info("event loop run, {}", this->threadName);
     while (!this->quit) 
 	this->evDispatchPtr->event_dispatch();
 
-    yolanda_msgx("event loop end, %s", this->threadName.c_str());
+    spdlog::info("event loop end, {}", this->threadName);
 }
 
 int event_loop::get_event_size()

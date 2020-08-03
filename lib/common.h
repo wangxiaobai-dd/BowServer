@@ -35,6 +35,7 @@
 #include    <pthread.h>
 
 #include    <sys/epoll.h>
+#include    "spdlog/spdlog.h"
 
 void err_dump(const char *, ...);
 
