@@ -1,1 +1,0 @@
-/usr/bin/g++  -Wno-write-strings -Wno-pointer-arith  -rdynamic CMakeFiles/MainServer.dir/MainServer.cpp.o  -o MainServer ../lib/libyolanda.a /usr/local/lib/libspdlog.a -lpthread -lpthread 
