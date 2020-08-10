@@ -2,6 +2,8 @@
 #include "common.h"
 #include "event_loop.h"
 #include "tcp_server.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 char rot13_char(char c) {
     if ((c >= 'a' && c <= 'm') || (c >= 'A' && c <= 'M'))
@@ -45,8 +47,24 @@ int onConnectionClosed(const TcpConnPtr& tcpConnection) {
     return 0;
 }
 
+// 日志
+void setFileLogger()
+{
+    using namespace spdlog::sinks;
+    //auto file_logger = spdlog::basic_logger_mt<spdlog::async_factory>("async_file_logger", "alog.log");
+    auto console_sink = std::make_shared<stdout_color_sink_mt>(); 
+    //console_sink->set_level( spdlog::level::warn);
+    auto file_sink = std::make_shared<basic_file_sink_mt>("test.log");
+    //file_sink->set_level( spdlog::level::trace);
+    auto bow_logger = std::shared_ptr<spdlog::logger>(new spdlog::logger("multi_sink", {console_sink, file_sink}));
+    spdlog::set_default_logger(bow_logger);
+    spdlog::flush_every(std::chrono::seconds(1));
+}
+
 int main(int argc, char** argv)
 {
+    setFileLogger();
+
     // 主线程event_loop
     EvLoopPtr eventLoop = event_loop::event_loop_init("main thread");
     // 初始化acceptor
