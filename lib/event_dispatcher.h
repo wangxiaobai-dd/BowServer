@@ -4,6 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <iostream>
+#include <list>
 
 #include "common.h"
 /*
@@ -59,7 +60,7 @@ struct event_dispatcher : public channel_queue
 {
     int epfd = -1; // epoll 实例
     std::vector<struct epoll_event> retEventVec;
-    std::vector<ChanPtr> channelVec; // 任务列表
+    std::list<ChanPtr> channelList; // 任务列表
     std::unordered_map<int, ChanPtr> channelMap; // <fd, channel> 映射
     int channelSize = 0;
 

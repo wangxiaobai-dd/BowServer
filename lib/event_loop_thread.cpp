@@ -16,7 +16,7 @@ void event_loop_thread::start()
 	cond.wait(lock, [this]{return eventLoop != nullptr; });
     }
     
-    spdlog::info("event loop thread started, {}", thread_name);
+    spdlog::info("eventloop thread started, {}", thread_name);
 }
 
 void event_loop_thread::event_loop_thread_run(EventThreadPtr eventLoopThread) 
@@ -24,7 +24,7 @@ void event_loop_thread::event_loop_thread_run(EventThreadPtr eventLoopThread)
     std::unique_lock<std::mutex> lock(eventLoopThread->mutex);
     // 初始化event loop，之后通知主线程
     eventLoopThread->eventLoop = event_loop::event_loop_init(eventLoopThread->thread_name);
-    spdlog::info("event loop thread init and signal, {}", eventLoopThread->thread_name);
+    spdlog::info("eventloop thread init and signal, {}", eventLoopThread->thread_name);
     eventLoopThread->cond.notify_one();
     lock.unlock();
 

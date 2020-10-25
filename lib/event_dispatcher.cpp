@@ -29,7 +29,8 @@ void event_dispatcher::event_dispatch()
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     // 检查待处理连接
     checkChan();
-    for(auto chanIter = channelVec.begin(); chanIter != channelVec.end();)
+
+    for(auto chanIter = channelList.begin(); chanIter != channelList.end();)
     {
 	// 终止
 	if((*chanIter)->isTerminate)
@@ -37,7 +38,8 @@ void event_dispatcher::event_dispatch()
 	    spdlog::info("chan terminate success");
 	    event_del(*chanIter);
 	    channelMap.erase((*chanIter)->fd);
-	    chanIter = channelVec.erase(chanIter);
+	    channelList.erase(chanIter++);
+	    channelSize -= 1;
 	}
 	else
 	    ++chanIter;
@@ -46,17 +48,19 @@ void event_dispatcher::event_dispatch()
     int ret = epoll_wait(epfd, &retEventVec[0], channelSize, 0);
     for (int i = 0; i < ret; i++) 
     {
-        if (retEventVec[i].events & (EPOLLERR | EPOLLHUP))
-	{
-	    spdlog::error("epoll error");
-	    channelMap[retEventVec[i].data.fd]->isTerminate = 1;
-            close(retEventVec[i].data.fd);
-            continue;
-        }
-
 	int fd = retEventVec[i].data.fd;
 	assert(channelMap.count(fd));
 	auto& channel = channelMap[fd];
+    
+        if (retEventVec[i].events & (EPOLLERR | EPOLLHUP))
+	{
+	    spdlog::error("epoll error");
+	    event_del(channel);
+	    channelMap.erase(fd);
+	    channelList.remove(channel);
+	    channelSize = channelList.size();
+            continue;
+        }
 
         if (retEventVec[i].events & EPOLLIN) 
 	{
@@ -90,8 +94,8 @@ void event_dispatcher::event_add(const ChanPtr& channel)
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, channel->fd, &event) == -1) 
 	spdlog::error("epoll_ctl add fd failed, errno:{}", errno);
     channelMap[channel->fd] = channel;
-    channelVec.push_back(channel);
-    channelSize = channelVec.size();
+    channelList.push_back(channel);
+    channelSize = channelList.size();
     if (channelSize > retEventVec.size())
 	retEventVec.resize(channelSize + 10);
 }

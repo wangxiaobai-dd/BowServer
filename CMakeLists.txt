@@ -17,11 +17,15 @@ if(NOT TARGET spdlog)
 endif()
 
 include_directories(lib)
+include_directories(protos)
 
 add_subdirectory(lib)
+add_subdirectory(protos)
 add_subdirectory(MainServer)
 #add_subdirectory(ViceServer)
 add_subdirectory(Client)
+
+#link_directories(/usr/local/lib)
 
 add_custom_target(ctags
 	WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}

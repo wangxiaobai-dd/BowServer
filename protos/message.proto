@@ -1,0 +1,13 @@
+syntax="proto2";
+package pb;
+//option optimize_for = LITE_RUNTIME;
+
+message Bow1
+{
+    optional uint32 id = 1;
+}
+
+message Bow2
+{
+    optional string name = 1;
+}

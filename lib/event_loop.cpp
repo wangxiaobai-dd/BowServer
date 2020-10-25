@@ -52,11 +52,11 @@ void event_loop::event_loop_run()
     if (this->ownThreadID != std::this_thread::get_id())
         exit(1);
 
-    spdlog::info("event loop run, {}", this->threadName);
+    spdlog::info("eventloop run, {}", this->threadName);
     while (!this->quit) 
 	this->evDispatchPtr->event_dispatch();
 
-    spdlog::info("event loop end, {}", this->threadName);
+    spdlog::info("eventloop end, {}", this->threadName);
 }
 
 int event_loop::get_event_size()

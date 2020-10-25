@@ -4,6 +4,8 @@
 #include "tcp_server.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "parse_selfproto.h"
+#include "selfmessage.pb.h"
 
 char rot13_char(char c) {
     if ((c >= 'a' && c <= 'm') || (c >= 'A' && c <= 'M'))
@@ -20,17 +22,42 @@ int onConnectionCompleted(const TcpConnPtr& tcpConnection) {
     return 0;
 }
 
+// protobuf 消息
+void onProtobufMessage(struct buffer* input){
+    using namespace google::protobuf;
+    bowpb::BowMsg bowMsg;
+    bowMsg.ParseFromArray(input->data + input->readIndex, input->buffer_readable_size());
+    
+    auto msg = SelfProto::createMessage(bowMsg.type_name());
+    if(!msg)
+	return;
+    msg->ParseFromString(bowMsg.msg_data());
+
+    // 可以做成配置
+    auto descriptor = msg->GetDescriptor();
+    auto reflection = msg->GetReflection();
+    if(bowMsg.type_name() == "pb.Bow1")
+    {
+	spdlog::info("recv pb msg,bow1,{}", msg->DebugString());
+    }
+    else if(bowMsg.type_name() == "pb.Bow2")
+    {
+	spdlog::info("recv pb msg,bow2,{}", msg->DebugString());
+    }
+}
+
 // 数据读到buffer之后的callback
 int onMessage(struct buffer* input, const TcpConnPtr& tcpConnection) {
-    spdlog::info("get message get message from tcp connection:{}", tcpConnection->name);
-    spdlog::info("data:{}", input->data + input->readIndex);
 
+    onProtobufMessage(input);
+
+    /* 回显
     struct buffer* output = buffer::buffer_new();
     int size = input->buffer_readable_size();
     for (int i = 0; i < size; i++) 
 	output->buffer_append_char(rot13_char(input->buffer_read_char()));
-
     tcpConnection->tcp_connection_send_buffer(output);
+    */
     buffer::buffer_free(output);
     return 0;
 }
@@ -61,9 +88,15 @@ void setFileLogger()
     spdlog::flush_every(std::chrono::seconds(1));
 }
 
+void initSelfProto()
+{
+    spdlog::info("init self proto:{}", SelfProto::openDesSet());
+}
+
 int main(int argc, char** argv)
 {
     setFileLogger();
+    initSelfProto();
 
     // 主线程event_loop
     EvLoopPtr eventLoop = event_loop::event_loop_init("main thread");

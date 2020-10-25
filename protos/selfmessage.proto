@@ -1,0 +1,10 @@
+syntax="proto2";
+package bowpb;
+//option optimize_for = LITE_RUNTIME;
+
+message BowMsg
+{
+    optional string type_name = 1;
+    optional bytes msg_data = 2;
+}
+
