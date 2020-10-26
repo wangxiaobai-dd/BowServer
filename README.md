@@ -6,6 +6,8 @@ epoll 服务器
 语言：c++
 
 log:spdlog  
+增加了protobuf 自描述消息机制
 
 客户端测试：
 telnet 127.0.0.1 8800
+或者Client/BowClient
